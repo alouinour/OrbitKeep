@@ -7,19 +7,17 @@ interface GlobeViewProps {
 }
 
 export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
-  const [size, setSize] = useState(720);
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width;
-      if (width) setSize(width);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
+    const handleResize = () =>
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -29,23 +27,21 @@ export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative mx-auto aspect-square w-full max-w-[720px]">
-      <Globe
-        ref={globeRef}
-        width={size}
-        height={size}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        backgroundColor="rgba(0,0,0,0)"
-        pointsData={objects}
-        pointLat="lat"
-        pointLng="lon"
-        pointAltitude={0.01}
-        pointColor={(d: any) =>
-          (d as DebrisObject).type === "satellite" ? "#3FA66B" : "#E0522F"
-        }
-        pointRadius={0.4}
-        pointLabel={(d: any) => (d as DebrisObject).nom}
-      />
-    </div>
+    <Globe
+      ref={globeRef}
+      width={dimensions.width}
+      height={dimensions.height}
+      globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+      backgroundColor="rgba(0,0,0,0)"
+      pointsData={objects}
+      pointLat="lat"
+      pointLng="lon"
+      pointAltitude={0.01}
+      pointColor={(d: any) =>
+        (d as DebrisObject).type === "satellite" ? "#3FA66B" : "#E0522F"
+      }
+      pointRadius={0.4}
+      pointLabel={(d: any) => (d as DebrisObject).nom}
+    />
   );
 }
