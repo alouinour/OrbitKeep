@@ -5,6 +5,10 @@ from app.services.celestrak import fetch_tle
 from app.services.tle_parser import parse_tle_to_object
 
 CACHE_TTL_SECONDS = 300  # 5 minutes
+# NB: CelesTrak refuse un re-download tant que GROUP=active n'a pas été
+# régénéré côté serveur (toutes les 2h), même après ce TTL. Le cache
+# ci-dessous limite nos propres appels, mais ne garantit pas un succès
+# si on retélécharge trop tôt après leur fenêtre de mise à jour.
 SATELLITE_LIMIT = 40  # évite de faire ramer le rendu du globe avec ~9000 satellites
 
 _cache: dict[str, tuple[float, list[DebrisObject]]] = {}

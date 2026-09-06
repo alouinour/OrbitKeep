@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Globe from "react-globe.gl";
-import { mockDebrisObjects, type DebrisObject } from "../data/debrisMock";
-import { fetchDebrisObjects } from "../services/debrisApi";
+import { mockDebrisObjects, type DebrisObject } from "../data/DebrisMock";
+import { getObjectColor, getObjectRadius } from "../utils/objectStyle";
 
-export function GlobeView() {
+interface GlobeViewProps {
+  objects?: DebrisObject[];
+}
+
+export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
   const globeRef = useRef<any>(null);
-  const [objects, setObjects] = useState<DebrisObject[]>(mockDebrisObjects);
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -16,14 +19,6 @@ export function GlobeView() {
       setDimensions({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    fetchDebrisObjects()
-      .then(setObjects)
-      .catch((err) => {
-        console.error("Live debris fetch failed, staying on mock data:", err);
-      });
   }, []);
 
   useEffect(() => {
@@ -43,10 +38,8 @@ export function GlobeView() {
       pointLat="lat"
       pointLng="lon"
       pointAltitude={0.01}
-      pointColor={(d: any) =>
-        (d as DebrisObject).type === "satellite" ? "#3FA66B" : "#E0522F"
-      }
-      pointRadius={0.4}
+      pointColor={(d: any) => getObjectColor(d as DebrisObject)}
+      pointRadius={(d: any) => getObjectRadius(d as DebrisObject)}
       pointLabel={(d: any) => (d as DebrisObject).nom}
     />
   );
