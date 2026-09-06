@@ -1,5 +1,6 @@
 import type { DebrisObject } from "../data/DebrisMock";
 import { TYPE_LABELS } from "../utils/objectStyle";
+import { EducationCard } from "./EducationCard";
 
 interface ObjectInfoPanelProps {
   object: DebrisObject;
@@ -8,7 +9,7 @@ interface ObjectInfoPanelProps {
 
 export function ObjectInfoPanel({ object, onClose }: ObjectInfoPanelProps) {
   return (
-    <div className="absolute bottom-4 left-4 z-10 w-72 rounded-lg border border-white/10 bg-bg/90 p-4 backdrop-blur">
+    <div className="absolute bottom-4 left-4 z-10 w-80 rounded-lg border border-white/10 bg-bg/90 p-4 backdrop-blur">
       <div className="flex items-start justify-between">
         <h2 className="text-sm font-semibold text-text-primary">{object.nom}</h2>
         <button
@@ -37,6 +38,7 @@ export function ObjectInfoPanel({ object, onClose }: ObjectInfoPanelProps) {
           <dd>{object.lon.toFixed(2)}°</dd>
         </div>
       </dl>
+      <EducationCard object={object} />
     </div>
   );
 }
