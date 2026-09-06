@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Globe from "react-globe.gl";
-import { mockDebrisObjects, type DebrisObject } from "../data/DebrisMock";
+import { mockDebrisObjects, type DebrisObject } from "../data/debrisMock";
+import { fetchDebrisObjects } from "../services/debrisApi";
 
-interface GlobeViewProps {
-  objects?: DebrisObject[];
-}
-
-export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
+export function GlobeView() {
   const globeRef = useRef<any>(null);
+  const [objects, setObjects] = useState<DebrisObject[]>(mockDebrisObjects);
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -18,6 +16,14 @@ export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
       setDimensions({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    fetchDebrisObjects()
+      .then(setObjects)
+      .catch((err) => {
+        console.error("Live debris fetch failed, staying on mock data:", err);
+      });
   }, []);
 
   useEffect(() => {
