@@ -5,9 +5,10 @@ import { getObjectColor, getObjectRadius } from "../utils/objectStyle";
 
 interface GlobeViewProps {
   objects?: DebrisObject[];
+  onObjectClick?: (object: DebrisObject) => void;
 }
 
-export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
+export function GlobeView({ objects = mockDebrisObjects, onObjectClick }: GlobeViewProps) {
   const globeRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -41,6 +42,7 @@ export function GlobeView({ objects = mockDebrisObjects }: GlobeViewProps) {
       pointColor={(d: any) => getObjectColor(d as DebrisObject)}
       pointRadius={(d: any) => getObjectRadius(d as DebrisObject)}
       pointLabel={(d: any) => (d as DebrisObject).nom}
+      onPointClick={(d: any) => onObjectClick?.(d as DebrisObject)}
     />
   );
 }

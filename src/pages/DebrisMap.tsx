@@ -2,14 +2,16 @@ import { useState } from "react";
 import { GlobeView } from "../components/GlobeView";
 import { Legend } from "../components/Legend";
 import { FilterPanel } from "../components/FilterPanel";
+import { ObjectInfoPanel } from "../components/ObjectInfoPanel";
 import { useDebrisObjects } from "../hooks/useDebrisObjects";
 import { filterObjects, type TypeFilter } from "../utils/filterObjects";
+import type { DebrisObject } from "../data/DebrisMock";
 
 export function DebrisMap() {
   const objects = useDebrisObjects();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-
+  const [selectedObject, setSelectedObject] = useState<DebrisObject | null>(null);
   const visibleObjects = filterObjects(objects, query, typeFilter);
 
   return (
@@ -27,8 +29,11 @@ export function DebrisMap() {
           Aucun objet ne correspond à ta recherche.
         </p>
       )}
+      {selectedObject && (
+        <ObjectInfoPanel object={selectedObject} onClose={() => setSelectedObject(null)} />
+      )}
       <div className="absolute inset-0">
-        <GlobeView objects={visibleObjects} />
+        <GlobeView objects={visibleObjects} onObjectClick={setSelectedObject} />
       </div>
     </div>
   );
