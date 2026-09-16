@@ -3,12 +3,18 @@ import Globe from "react-globe.gl";
 import { mockDebrisObjects, type DebrisObject } from "../data/DebrisMock";
 import { getObjectColor, getObjectRadius } from "../utils/objectStyle";
 
+interface RingPoint {
+  lat: number;
+  lng: number;
+}
+
 interface GlobeViewProps {
   objects?: DebrisObject[];
   onObjectClick?: (object: DebrisObject) => void;
+  ringsData?: RingPoint[];
 }
 
-export function GlobeView({ objects = mockDebrisObjects, onObjectClick }: GlobeViewProps) {
+export function GlobeView({ objects = mockDebrisObjects, onObjectClick, ringsData = [] }: GlobeViewProps) {
   const globeRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -43,6 +49,13 @@ export function GlobeView({ objects = mockDebrisObjects, onObjectClick }: GlobeV
       pointRadius={(d: any) => getObjectRadius(d as DebrisObject)}
       pointLabel={(d: any) => (d as DebrisObject).nom}
       onPointClick={(d: any) => onObjectClick?.(d as DebrisObject)}
+      ringsData={ringsData}
+      ringLat="lat"
+      ringLng="lng"
+      ringColor={() => "rgba(217, 74, 74, 0.6)"}
+      ringMaxRadius={2.5}
+      ringPropagationSpeed={2}
+      ringRepeatPeriod={900}
     />
   );
 }
