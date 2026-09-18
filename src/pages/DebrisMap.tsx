@@ -1,0 +1,53 @@
+import { useMemo, useState } from "react";
+import { GlobeView } from "../components/GlobeView";
+import { Legend } from "../components/Legend";
+import { FilterPanel } from "../components/FilterPanel";
+import { ObjectInfoPanel } from "../components/ObjectInfoPanel";
+import { useDebrisObjects } from "../hooks/useDebrisObjects";
+import { filterObjects, type TypeFilter } from "../utils/filterObjects";
+import { findObjectsAtRisk } from "../utils/proximity";
+import type { DebrisObject } from "../data/DebrisMock";
+
+export function DebrisMap() {
+  const objects = useDebrisObjects();
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [selectedObject, setSelectedObject] = useState<DebrisObject | null>(null);
+  const visibleObjects = filterObjects(objects, query, typeFilter);
+
+  // Calculé sur la liste complète (pas filtrée) : un risque de proximité
+  // reste réel même si l'objet concerné est momentanément filtré/caché.
+  const atRiskIds = useMemo(() => findObjectsAtRisk(objects), [objects]);
+
+  const ringsData = useMemo(
+    () =>
+      visibleObjects
+        .filter((o) => atRiskIds.has(o.id))
+        .map((o) => ({ lat: o.lat, lng: o.lon })),
+    [visibleObjects, atRiskIds]
+  );
+
+  return (
+    <div className="relative h-screen w-screen overflow-hidden bg-bg text-text-primary">
+      <h1 className="label-tech absolute left-4 top-4 z-10">Awareness — Debris Map</h1>
+      <FilterPanel
+        query={query}
+        onQueryChange={setQuery}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+      />
+      <Legend />
+      {visibleObjects.length === 0 && (
+        <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-sm text-text-secondary">
+          Aucun objet ne correspond à ta recherche.
+        </p>
+      )}
+      {selectedObject && (
+        <ObjectInfoPanel object={selectedObject} onClose={() => setSelectedObject(null)} />
+      )}
+      <div className="absolute inset-0">
+        <GlobeView objects={visibleObjects} onObjectClick={setSelectedObject} ringsData={ringsData} />
+      </div>
+    </div>
+  );
+}
