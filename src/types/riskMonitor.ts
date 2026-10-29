@@ -15,13 +15,16 @@ export interface DashboardResponse {
 
 export interface AlertResponse {
   id: string;
+  satellite_id: string;
   satellite_name: string;
+  debris_id: string;
   debris_name: string;
-  risk_level: RiskLevel;
   distance_km: number;
   closest_approach_time: string;
-  status: AlertStatus;
+  risk_level: RiskLevel;
+  detected_at: string;
   is_read: boolean;
+  status: AlertStatus;
 }
 
 export interface MapObject {

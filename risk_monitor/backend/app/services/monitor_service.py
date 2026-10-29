@@ -63,12 +63,15 @@ class MonitorService:
     async def run_once(self) -> int:
         logger.info("Danger monitoring cycle started")
         satellites,debris=await self.celestrak.fetch_active_satellites(),await self.celestrak.fetch_debris()
-        await asyncio.to_thread(self.repository.upsert_objects,[*satellites,*debris])  # FIX: écriture SQLite hors boucle asyncio
+        await asyncio.to_thread(self.repository.upsert_objects,[*satellites,*debris])
         if self.orbit_service is None: self.orbit_service=OrbitService()
         now=datetime.now(timezone.utc)
-        resolved=self.repository.resolve_expired(now)  # NOUVEAU: les approches passées deviennent RESOLVED
-        if resolved: logger.info("%s expired alerts resolved",resolved)
+        # FIX: screen d'abord, resolve ensuite.
+        # Avant: resolve_expired(now) tournait AVANT _screen → une conjonction au bord de la fenêtre de
+        # tolérance (300 s) était résolue puis immédiatement ré-insérée avec un nouvel id → doublon NEW_ALERT.
         hits=await asyncio.to_thread(self._screen,satellites,debris,now)
+        resolved=self.repository.resolve_expired(now)
+        if resolved: logger.info("%s expired alerts resolved",resolved)
         created=0
         for satellite,piece,distance,approach,risk in hits:
             alert,is_new=self.repository.upsert_alert(satellite,piece,distance,approach,risk,danger_settings.duplicate_tolerance_seconds)

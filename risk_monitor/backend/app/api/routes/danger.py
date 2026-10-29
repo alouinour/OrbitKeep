@@ -8,6 +8,16 @@ from app.websocket.manager import manager
 router=APIRouter(prefix="/api/danger",tags=["danger notifier"])
 repository=DangerRepository()
 
+# Singleton OrbitService partagé par /map et réutilisé entre les requêtes.
+# Evite de reconstruire le cache EarthSatellite (1500 initialisations SGP4) à chaque appel.
+_orbit_service: OrbitService | None = None
+
+def _get_orbit_service() -> OrbitService:
+    global _orbit_service
+    if _orbit_service is None:
+        _orbit_service = OrbitService()
+    return _orbit_service
+
 @router.get("/alerts",response_model=list[AlertResponse])
 def alerts(risk_level: RiskLevel|None=None,is_read: bool|None=None,status: AlertStatus|None=None,limit:int=Query(100,ge=1,le=500),offset:int=Query(0,ge=0)):
     return repository.list_alerts(risk_level, is_read, status, limit, offset)
@@ -39,11 +49,11 @@ def threats(): return repository.list_alerts(status=AlertStatus.ACTIVE)
 
 @router.get("/map",response_model=list[MapObject])
 def map_data():
-    # FIX #1: utilise map_objects(limit) au lieu de objects() → plafond respecté, objets à risque en premier
-    # FIX #2: utilise active_risks() → retourne le niveau le PLUS ÉLEVÉ par objet (le dict overwrite retournait le dernier, pas le pire)
     from app.core.config import danger_settings as _ds
     risks=repository.active_risks()
-    try: orbit=OrbitService(); now=datetime.now(timezone.utc); data=[]
+    try:
+        orbit=_get_orbit_service()   # FIX: singleton — cache EarthSatellite préservé entre les requêtes
+        now=datetime.now(timezone.utc); data=[]
     except OrbitPropagationError as exc: raise HTTPException(503,"Orbital propagation service unavailable") from exc
     for obj in repository.map_objects(_ds.map_max_objects):
         try: lat,lon,alt=orbit.map_position(obj,now); data.append(MapObject(id=obj.id,name=obj.name,norad_id=obj.norad_id,object_type=obj.object_type,latitude=lat,longitude=lon,altitude_km=alt,risk_level=risks.get(obj.id)))

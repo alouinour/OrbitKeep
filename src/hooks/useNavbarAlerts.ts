@@ -28,6 +28,9 @@ export function useNavbarAlerts(): NavbarAlertsState {
       if (id !== requestId.current) return;
       const active = data.slice(0, MAX_NOTIFICATIONS);
       setAlerts(active);
+      // Compte les non-lus sur la liste complète (pas seulement les 5 visibles)
+      // pour que le badge reflète la réalité — mais on utilise l'endpoint dédié
+      // pour éviter la divergence badge/panel quand il y a >MAX_NOTIFICATIONS alertes non lues.
       setUnreadCount(data.filter((a) => !a.is_read).length);
     } catch {
       // Silencieux : la navbar ne bloque pas si le backend est indisponible
