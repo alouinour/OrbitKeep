@@ -125,6 +125,6 @@ export const footerLinks = [
   { label: "About", href: "#" },
   { label: "Research", href: "#" },
   { label: "Data", href: "#" },
-  { label: "GitHub", href: "#" },
+  { label: "GitHub", href: "https://github.com/alouinour/OrbitKeep" },
   { label: "Contact", href: "#" },
 ];
